@@ -1,0 +1,55 @@
+name: Build Resolume Browser Source (macOS & Windows)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    name: macOS Universal (arm64 + x86_64)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure CMake (Universal Binary)
+        run: |
+          cmake -B build_mac \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"
+
+      - name: Build & Sign BrowserSource.bundle
+        run: |
+          cmake --build build_mac --config Release -j$(sysctl -n hw.ncpu)
+          lipo -info build_mac/BrowserSource.bundle/Contents/MacOS/BrowserSource
+          codesign --force --deep --sign - build_mac/BrowserSource.bundle
+
+      - name: Package macOS Bundle
+        run: |
+          cd build_mac
+          ditto -c -k --sequesterRsrc --keepParent BrowserSource.bundle BrowserSource-macOS-Universal.zip
+
+      - name: Upload macOS Bundle Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BrowserSource-macOS-Universal
+          path: build_mac/BrowserSource-macOS-Universal.zip
+
+  build-windows:
+    name: Windows x64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure & Build
+        run: |
+          cmake -B build -A x64
+          cmake --build build --config Release
+
+      - name: Upload Windows DLL Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BrowserSource-Windows-x64
+          path: build/Release/BrowserSource.dll

@@ -1,0 +1,20 @@
+# Build directories
+/build/
+/build_*/
+/out/
+.vs/
+*.user
+*.suo
+.DS_Store
+
+# Exclude unused sample plugins and non-x64/managed NuGet files from external/
+/external/ffgl/source/plugins/
+/external/webview2/*.nupkg
+/external/webview2/*.signature.p7s
+/external/webview2/lib/
+/external/webview2/runtimes/
+/external/webview2/tools/
+/external/webview2/build/wv2winrt/
+/external/webview2/build/native/arm64/
+/external/webview2/build/native/x86/
+/external/webview2/build/native/include-winrt/
